@@ -1,0 +1,577 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Neurotopology in Reinforcement Learning Agents</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: #f0f2f5;
+            margin: 0;
+            padding: 20px;
+        }
+        
+        .container {
+            display: flex;
+            flex-direction: row;
+            gap: 20px;
+        }
+
+        .left-column {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            background: white;
+            padding: 30px;
+            border-radius: 10px;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.1);
+        }
+
+        .right-column {
+            flex: 1;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        h1 {
+            text-align: center;
+            margin-bottom: 30px;
+            color: #333;
+        }
+
+        .controls {
+            display: grid;
+            grid-template-columns: 1fr; /* Change to single column */
+            gap: 20px;
+            margin-bottom: 30px;
+            padding: 20px;
+            background: #f8f9fa;
+            border-radius: 8px;
+            box-shadow: inset 0 1px 3px rgba(0,0,0,0.1);
+        }
+
+        .control-group {
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+        }
+
+        canvas { 
+            width: 100%;
+            height: 100%;
+            border-radius: 8px;
+            background-color: #ffffff;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.1);
+        }
+
+        button {
+            padding: 12px 25px;
+            border: none;
+            border-radius: 5px;
+            background: #007bff;
+            color: white;
+            cursor: pointer;
+            transition: background 0.3s;
+            font-size: 16px;
+            align-self: center;
+        }
+
+        button:hover {
+            background: #0056b3;
+        }
+
+        .phase-info {
+            padding: 10px;
+            background: #e9ecef;
+            border-radius: 8px;
+            margin-top: 10px;
+            margin-right: 15px;
+            margin-left: 15px;
+            font-size: 20px;
+            text-align: center;
+            font-weight: bold;
+            color: #333;
+            margin-bottom: 10px;
+            box-shadow: inset 0 1px 3px rgba(0,0,0,0.1);
+            width: 100%;
+            max-width: 400px;
+        }
+
+        .slider-container {
+            display: flex;
+            flex-direction: column;
+            gap: 5px;
+        }
+
+        .slider-container label {
+            flex: 1;
+            font-size: 16px;
+        }
+
+        input[type="range"] {
+            flex: 3;
+        }
+
+        .value-display {
+            min-width: 50px;
+            text-align: right;
+            font-size: 16px;
+        }
+
+        .instructions {
+            padding: 10px;
+            background: #e9ecef;
+            border-radius: 8px;
+            font-size: 16px;
+            color: #555;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            gap: 10px;
+            box-shadow: inset 0 1px 3px rgba(0,0,0,0.1);
+            width: 100%;
+            max-width: 400px;
+        }
+
+        /* Add styles for radio buttons */
+        .radio-group {
+            display: flex;
+            justify-content: center;
+            gap: 20px;
+            margin-bottom: 20px;
+            grid-column: 1 / -1;
+        }
+
+        /* Add styles for sliders group */
+        .sliders-group {
+            display: flex;
+            flex-direction: row;
+            align-items: center;
+            gap: 20px;
+        }
+
+        /* Adjust button alignment if necessary */
+        .sliders-group button {
+            align-self: center;
+        }
+
+        /* Add styles for the combined phase and instructions container */
+        .phase-and-instructions {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 10px;
+        }
+
+        /* Styles for counters */
+        .counters {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            background: #f8f9fa;
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+        }
+
+        .counter {
+            background: #e9ecef;
+            padding: 15px 25px; /* Increased padding */
+            border-radius: 8px;
+            font-size: 18px; /* Larger font size */
+            text-align: center;
+            box-shadow: inset 0 1px 3px rgba(0,0,0,0.1);
+        }
+
+        /* Add styles for layer and neuron controls container */
+        .layer-neuron-controls {
+            display: flex;
+            gap: 20px;
+            justify-content: center;
+            align-items: flex-start;
+        }
+
+        /* Add styles for the phase and counters container */
+        .phase-counters-container {
+            display: flex;
+            gap: 40px; /* Increased gap for better spacing */
+            justify-content: center;
+            align-items: flex-start;
+            margin-bottom: 30px; /* Add bottom margin for separation */
+        }
+
+        /* Style the phase-and-instructions box */
+        .phase-and-instructions {
+            background: #f8f9fa; /* Light background */
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+        }
+
+        .arrow-icon {
+            font-size: 18px;
+            color: #007bff;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="left-column">
+            <h1>Neurotopology in Reinforcement Learning Agents</h1>
+            <div class="controls">
+                <!-- Group Randomize button and sliders together -->
+                <div class="control-group sliders-group" style="flex-direction: row; justify-content: center;">
+                    <button id="randomize">Randomize Network</button>
+                    <div class="slider-container">
+                        <label for="activation-threshold">Activation Threshold:</label>
+                        <input type="range" id="activation-threshold" min="0" max="1" step="0.05" value="0.6">
+                        <span class="value-display" id="activation-value">0.6</span>
+                    </div>
+                    <div class="slider-container">
+                        <label for="difference-threshold">Difference Threshold:</label>
+                        <input type="range" id="difference-threshold" min="0" max="1" step="0.05" value="0.2">
+                        <span class="value-display" id="difference-value">0.2</span>
+                    </div>
+                </div>
+                <!-- Add radio buttons for phase selection below the sliders -->
+                <div class="control-group radio-group" style="flex-direction: row; justify-content: center;">
+                    <label><input type="radio" name="phase" value="1" checked> Phase 1</label>
+                    <label><input type="radio" name="phase" value="2"> Phase 2</label>
+                    <label><input type="radio" name="phase" value="3"> Phase 3</label>
+                </div>
+
+                <!-- Wrap the Number of Layers and Neurons per Layer controls -->
+                <div class="layer-neuron-controls">
+                    <div class="control-group">
+                        <label for="num-layers">Number of Layers:</label>
+                        <input type="number" id="num-layers" min="2" max="10" value="4">
+                    </div>
+                    <div class="control-group">
+                        <label for="neurons-per-layer">Neurons per Layer:</label>
+                        <input type="number" id="neurons-per-layer" min="1" max="20" value="12">
+                    </div>
+                </div>
+            </div>
+
+            <!-- Wrap phase-and-instructions and counters in a flex container -->
+            <div class="phase-counters-container">
+                <div class="phase-and-instructions">
+                    <div class="phase-info" id="phase-info">
+                        Phase 1: All Forward Connections
+                    </div>
+                    <div class="instructions">
+                        <span class="arrow-icon">&#8592;</span> Use Left/Right arrow keys to navigate between phases <span class="arrow-icon">&#8594;</span>
+                    </div>
+                </div>
+
+                <div class="counters">
+                    <div class="counter">
+                        Total Connections: <span id="total-connections">0</span>
+                    </div>
+                    <div class="counter">
+                        Filtered Connections: <span id="filtered-connections">0</span>
+                    </div>
+                    <div class="counter">
+                        Virtual Connections: <span id="virtual-connections">0</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="right-column">
+            <canvas id="neural-graph"></canvas>
+        </div>
+    </div>
+
+    <script>
+        class NeuralGraph {
+            constructor(canvas) {
+                this.canvas = canvas;
+                this.ctx = canvas.getContext('2d');
+                this.neurons = [];
+                this.connections = [];
+                this.activationThreshold = 0.6;
+                this.differenceThreshold = 0.2;
+                this.currentPhase = 1;
+                this.layerSizes = [12, 12, 12, 12]; // Increased layer size
+                this.maxLayerSize = Math.max(...this.layerSizes);
+                
+                this.createNetwork();
+                this.resizeCanvas();
+                window.addEventListener('resize', () => this.resizeCanvas());
+
+                // Initialize counters
+                this.totalConnections = 0;
+                this.filteredConnections = 0;
+                this.virtualConnections = 0;
+
+                // Initialize layer and neuron controls
+                this.numLayersInput = document.getElementById('num-layers');
+                this.neuronsPerLayerInput = document.getElementById('neurons-per-layer');
+
+                this.numLayersInput.addEventListener('change', () => {
+                    this.layerSizes = Array(parseInt(this.numLayersInput.value)).fill(parseInt(this.neuronsPerLayerInput.value));
+                    this.maxLayerSize = Math.max(...this.layerSizes);
+                    this.createNetwork();
+                });
+
+                this.neuronsPerLayerInput.addEventListener('change', () => {
+                    this.layerSizes = Array(parseInt(this.numLayersInput.value)).fill(parseInt(this.neuronsPerLayerInput.value));
+                    this.maxLayerSize = Math.max(...this.layerSizes);
+                    this.createNetwork();
+                });
+            }
+
+            resizeCanvas() {
+                this.canvas.width = this.canvas.offsetWidth;
+                this.canvas.height = this.canvas.offsetHeight;
+                this.updateNeuronPositions();
+                this.calculateConnections();
+                this.draw();
+            }
+
+            randomizeNetwork() {
+                this.neurons.forEach(neuron => {
+                    neuron.activation = Math.random();
+                    neuron.weights = Array(this.layerSizes[Math.min(neuron.layer + 1, this.layerSizes.length - 1)]).fill(0).map(() => (Math.random() * 2 - 1));
+                });
+                this.calculateConnections();
+                this.draw();
+            }
+
+            updateNeuronPositions() {
+                const horizontalSpacing = this.canvas.width / (this.layerSizes.length + 1);
+                for(let layer = 0; layer < this.layerSizes.length; layer++) {
+                    const layerSize = this.layerSizes[layer];
+                    const verticalSpacing = this.canvas.height / (this.maxLayerSize + 1);
+                    for(let i = 0; i < layerSize; i++) {
+                        const neuronIndex = layer * this.maxLayerSize + i;
+                        if(this.neurons[neuronIndex]) {
+                            this.neurons[neuronIndex].x = horizontalSpacing * (layer + 1);
+                            this.neurons[neuronIndex].y = verticalSpacing * (i + 1);
+                        }
+                    }
+                }
+            }
+
+            createNetwork() {
+                this.neurons = [];
+                for(let layer = 0; layer < this.layerSizes.length; layer++) {
+                    const layerSize = this.layerSizes[layer];
+                    for(let i = 0; i < layerSize; i++) {
+                        this.neurons.push({
+                            layer: layer,
+                            activation: Math.random(),
+                            x: 0,
+                            y: 0,
+                            weights: Array(this.layerSizes[Math.min(layer + 1, this.layerSizes.length - 1)]).fill(0).map(() => (Math.random() * 2 - 1))
+                        });
+                    }
+                }
+                this.updateNeuronPositions();
+                this.calculateConnections();
+                this.draw();
+                this.updateCounters();
+            }
+
+            calculateConnections() {
+                this.connections = [];
+                for(let layer = 0; layer < this.layerSizes.length - 1; layer++) {
+                    const currentLayerSize = this.layerSizes[layer];
+                    const nextLayerSize = this.layerSizes[layer + 1];
+                    const currentLayerStart = layer * this.maxLayerSize;
+                    const nextLayerStart = (layer + 1) * this.maxLayerSize;
+
+                    for(let i = 0; i < currentLayerSize; i++) {
+                        const sourceIndex = currentLayerStart + i;
+                        const sourceNeuron = this.neurons[sourceIndex];
+                        const activeTargets = [];
+
+                        for(let j = 0; j < nextLayerSize; j++) {
+                            const targetIndex = nextLayerStart + j;
+                            const strength = sourceNeuron.activation * sourceNeuron.weights[j];
+                            
+                            // Apply activation threshold only in phases 2 and 3
+                            if(this.currentPhase === 1 || Math.abs(strength) >= this.activationThreshold) {
+                                this.connections.push({
+                                    source: sourceIndex,
+                                    target: targetIndex,
+                                    strength: Math.abs(strength),
+                                    type: 'forward'
+                                });
+                                if(this.currentPhase > 1) {
+                                    activeTargets.push(j);
+                                }
+                            }
+                        }
+
+                        // Only add intra-layer connections if there are at least two active targets and phase >=3
+                        if(activeTargets.length >= 2 && this.currentPhase >= 3) {
+                            for(let m = 0; m < activeTargets.length; m++) {
+                                for(let n = m + 1; n < activeTargets.length; n++) {
+                                    const target1Index = nextLayerStart + activeTargets[m];
+                                    const target2Index = nextLayerStart + activeTargets[n];
+                                    const weightDiff = Math.abs(sourceNeuron.weights[activeTargets[m]] - sourceNeuron.weights[activeTargets[n]]);
+
+                                    // Change condition to filter connections with weightDiff < differenceThreshold
+                                    if(weightDiff < this.differenceThreshold) {
+                                        let strength = weightDiff / this.differenceThreshold;
+                                        // Cap strength at 1 to maintain opacity bounds
+                                        if(strength > 1) strength = 1;
+                                        this.connections.push({
+                                            source: target1Index,
+                                            target: target2Index,
+                                            strength: strength,
+                                            type: 'intra'
+                                        });
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+                // Reset counters
+                this.totalConnections = this.connections.length;
+                this.filteredConnections = this.connections.filter(conn => conn.type === 'forward').length;
+                this.virtualConnections = this.connections.filter(conn => conn.type === 'intra').length;
+                this.updateCounters();
+                this.draw();
+            }
+
+            draw() {
+                this.ctx.clearRect(0, 0, this.canvas.width, this.canvas.height);
+                
+                // Draw connections with arrowheads
+                this.connections.forEach(conn => {
+                    const source = this.neurons[conn.source];
+                    const target = this.neurons[conn.target];
+                    
+                    this.ctx.beginPath();
+                    this.ctx.moveTo(source.x, source.y);
+                    this.ctx.lineTo(target.x, target.y);
+                    
+                    if (conn.type === 'forward') {
+                        // Forward connections: line width based on strength
+                        this.ctx.strokeStyle = `rgba(0,0,255,${0.4 + conn.strength * 0.6})`;
+                        this.ctx.lineWidth = conn.strength * 3;
+                    } else {
+                        // Intra-layer connections: fixed line width
+                        this.ctx.strokeStyle = `rgba(0,255,0,${0.4 + conn.strength * 0.6})`;
+                        this.ctx.lineWidth = 2; // Fixed thickness for intra-layer connections
+                    }
+                    this.ctx.stroke();
+
+                    // Draw arrowhead
+                    const headlen = 10; // length of head in pixels
+                    const angle = Math.atan2(target.y - source.y, target.x - source.x);
+                    this.ctx.beginPath();
+                    this.ctx.moveTo(target.x, target.y);
+                    this.ctx.lineTo(target.x - headlen * Math.cos(angle - Math.PI / 6), target.y - headlen * Math.sin(angle - Math.PI / 6));
+                    this.ctx.lineTo(target.x - headlen * Math.cos(angle + Math.PI / 6), target.y - headlen * Math.sin(angle + Math.PI / 6));
+                    this.ctx.lineTo(target.x, target.y);
+                    this.ctx.fillStyle = this.ctx.strokeStyle;
+                    this.ctx.fill();
+                });
+
+                // Draw neurons
+                this.neurons.forEach((neuron, index) => {
+                    this.ctx.beginPath();
+                    this.ctx.arc(neuron.x, neuron.y, 20, 0, Math.PI * 2);
+                    this.ctx.fillStyle = `rgba(255,0,0,${0.3 + neuron.activation * 0.7})`;
+                    this.ctx.fill();
+                    this.ctx.strokeStyle = '#000';
+                    this.ctx.lineWidth = 2;
+                    this.ctx.stroke();
+                });
+
+                // Update phase info
+                const phaseTexts = [
+                    "Phase 1: All Forward Connections",
+                    "Phase 2: Filtered by Activation Threshold",
+                    "Phase 3: Intra-layer Connections Added"
+                ];
+                document.getElementById('phase-info').textContent = phaseTexts[this.currentPhase - 1];
+            }
+
+            update() {
+                this.calculateConnections();
+                this.draw();
+            }
+
+            updateCounters() {
+                document.getElementById('total-connections').textContent = this.totalConnections;
+                document.getElementById('filtered-connections').textContent = this.filteredConnections;
+                document.getElementById('virtual-connections').textContent = this.virtualConnections;
+            }
+        }
+
+        // Initialize visualization
+        const canvas = document.getElementById('neural-graph');
+        const graph = new NeuralGraph(canvas);
+
+        // Set up controls
+        const randomizeBtn = document.getElementById('randomize');
+        const activationSlider = document.getElementById('activation-threshold');
+        const differenceSlider = document.getElementById('difference-threshold');
+        const activationValue = document.getElementById('activation-value');
+        const differenceValue = document.getElementById('difference-value');
+
+        randomizeBtn.addEventListener('click', () => {
+            graph.randomizeNetwork();
+        });
+
+        activationSlider.addEventListener('input', (e) => {
+            graph.activationThreshold = parseFloat(e.target.value);
+            activationValue.textContent = e.target.value;
+            graph.calculateConnections();
+            graph.draw();
+        });
+
+        differenceSlider.addEventListener('input', (e) => {
+            let value = parseFloat(e.target.value);
+            // Ensure the differenceThreshold does not fall below 0.05
+            if (value < 0.05) {
+                value = 0.05;
+                e.target.value = 0.05;
+                differenceValue.textContent = '0.05';
+            } else {
+                differenceValue.textContent = value.toFixed(2);
+            }
+            graph.differenceThreshold = value;
+            graph.calculateConnections();
+            graph.draw();
+        });
+
+        // Add event listeners for radio buttons
+        document.querySelectorAll('input[name="phase"]').forEach(radio => {
+            radio.addEventListener('change', (e) => {
+                graph.currentPhase = parseInt(e.target.value);
+                graph.update();
+            });
+        });
+
+        // Remove phase control with arrow keys if not needed
+        // Should also update the radio button selection
+        document.addEventListener('keydown', (e) => {
+            if (e.key === 'ArrowRight') {
+                if (graph.currentPhase < 3) {
+                    graph.currentPhase += 1;
+                    // Update radio button selection
+                    document.querySelector(`input[name="phase"][value="${graph.currentPhase}"]`).checked = true;
+                    graph.update();
+                }
+            } else if (e.key === 'ArrowLeft') {
+                if (graph.currentPhase > 1) {
+                    graph.currentPhase -= 1;
+                    // Update radio button selection
+                    document.querySelector(`input[name="phase"][value="${graph.currentPhase}"]`).checked = true;
+                    graph.update();
+                }
+            }
+        });
+
+        // Initial draw
+        graph.draw();
+    </script>
+</body>
+</html>
